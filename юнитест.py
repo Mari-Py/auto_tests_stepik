@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import unittest
-
+import time
 
 class TestAbs(unittest.TestCase):
     def test_reg1(self):
