@@ -4,6 +4,9 @@ import time
 
 link = "http://suninjuly.github.io/find_xpath_form"
 
+def test_abs1():
+    assert abs(-42) == 42, "Should be absolute value of a number"
+
 try:
     browser = webdriver.Chrome()
     browser.get(link)
@@ -23,3 +26,5 @@ try:
 finally:
     time.sleep(30)
     browser.quit()
+
+
