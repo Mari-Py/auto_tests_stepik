@@ -2,41 +2,37 @@ import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 import math
 import time
 
-@pytest.mark.parametrize('links', ["https://stepik.org/lesson/236895/step/1",
-                                    "https://stepik.org/lesson/236896/step/1",
-                                    "https://stepik.org/lesson/236897/step/1",
-                                    "https://stepik.org/lesson/236898/step/1",
-                                    "https://stepik.org/lesson/236899/step/1",
-                                    "https://stepik.org/lesson/236903/step/1",
-                                    "https://stepik.org/lesson/236904/step/1",
-                                    "https://stepik.org/lesson/236905/step/1"])
-@pytest.mark.xfail(strict=True)
+@pytest.fixture(scope="session")
+def browser():
+    br = webdriver.Chrome()
+    yield br
+    # этот код выполнится после завершения теста (из-за yield)
+    br.quit()
+
+# в качестве аргументов передаётся изменяемая часть ссылок
+@pytest.mark.parametrize('links', ['236895', '236896', '236897', '236898',
+                                   '236899', '236903', '236904', '236905'])
 def test_guest(browser, links):
-    answer = math.log(int(time.time()))
+    link = f'https://stepik.org/lesson/{links}/step/1'
 
-    link = f"{links}"
+    # ожидание прогрузки страницы
+    browser.implicitly_wait(10)
 
-    browser = webdriver.Chrome()
     browser.get(link)
 
     # ищем поле ввода, вводим ответ
-    inp_num = browser.find_element(By.ID, "ember91")
-    inp_num.send_keys(answer)
+    browser.find_element(By.TAG_NAME, 'textarea').send_keys((str(math.log(int(time.time())))))
 
-    # кликаем "отправить"
-    button2 = browser.find_element(By.CSS_SELECTOR, "button.submit-submission")
-    button2.click()
+    # кликаем "отправить" когда появится кнопка
+    button = WebDriverWait(browser, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button.submit-submission")))
+    button.click()
 
-    time.sleep(3)
+    # находим элемент, содержащий текст, который надо проверить, берём из него текст
+    check_text = browser.find_element(By.CLASS_NAME, "smart-hints__hint").text
 
-    # находим элемент, содержащий текст, который надо проверить
-    proverka = browser.find_element(By.CSS_SELECTOR, "p.smart-hints__hint")
-
-    # записываем текст из элемента proverka
-    pr_text = proverka.text
-
-    assert pr_text == "Correct!", "Осознанное сообщение"
+    assert check_text == "Correct!"
